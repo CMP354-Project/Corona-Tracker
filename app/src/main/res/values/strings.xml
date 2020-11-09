@@ -4,8 +4,11 @@
     <string name="descriptionText">This application is designed to inform you and other users if you have been in recent contact with an infected individual.</string>
     <string name="emailText">Email:</string>
     <string name="passText">Password:</string>
+    <string name="confirmPassText">Confirm Password:</string>
     <string name="emailHint">Enter your email here</string>
     <string name="passHint">Enter your password here</string>
+    <string name="confirmPassHint">Enter your password again</string>
     <string name="registerText">Register</string>
     <string name="loginText">Login</string>
+    <string name="enterDetails">Please enter your details: </string>
 </resources>
