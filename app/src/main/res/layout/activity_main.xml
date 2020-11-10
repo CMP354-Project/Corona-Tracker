@@ -54,11 +54,10 @@
                 android:layout_gravity="center"
                 android:backgroundTint="#78F87E"
                 android:gravity="center"
-                android:padding="10sp"
                 android:password="false"
                 android:text="@string/registerText"
                 android:textColor="#000000"
-                android:textSize="21sp" />
+                android:textSize="24sp" />
 
         </TableRow>
 
