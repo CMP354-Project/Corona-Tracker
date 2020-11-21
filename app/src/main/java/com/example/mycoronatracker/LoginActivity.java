@@ -21,7 +21,7 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class LoginActivity extends AppCompatActivity implements OnClickListener {
 
-    private FirebaseAuth mAuth;
+    public static FirebaseAuth mAuth;
 
     private EditText loginEmailET;
     private EditText loginPassET;
