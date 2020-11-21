@@ -6,4 +6,31 @@
     android:layout_height="match_parent"
     tools:context=".HomeActivity">
 
+    <ToggleButton
+        android:id="@+id/coronaToggleButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="45sp"
+        android:layout_marginTop="299sp"
+        android:layout_marginEnd="45sp"
+        android:layout_marginBottom="222sp"
+        android:checked="false"
+        android:rotationY="0"
+        android:textOff="@string/coronaToggleNegative"
+        android:textOn="@string/coronaTogglePositive"
+        app:layout_constraintBottom_toTopOf="@+id/infoButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageButton
+        android:id="@+id/infoButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="83dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/coronaToggleButton"
+        app:srcCompat="@drawable/common_google_signin_btn_icon_dark" />
 </androidx.constraintlayout.widget.ConstraintLayout>

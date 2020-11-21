@@ -90,9 +90,9 @@ public class RegisterActivity extends AppCompatActivity implements OnClickListen
                             private void updateUI(FirebaseUser user) {
                                 if (user != null) {
                                     String userEmail = user.getEmail().toString();
-                                    Intent homeActivity = new Intent(RegisterActivity.this, HomeActivity.class);
-                                    homeActivity.putExtra("email", userEmail);
-                                    startActivity(homeActivity);
+                                    Intent homeScreen = new Intent(RegisterActivity.this, MainActivity.class);
+                                    homeScreen.putExtra("email", userEmail);
+                                    startActivity(homeScreen);
                                 }
                             }
 

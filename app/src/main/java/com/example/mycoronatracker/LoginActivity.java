@@ -123,6 +123,7 @@ public class LoginActivity extends AppCompatActivity implements OnClickListener 
         if (user != null) {
             String email = loginEmailET.getText().toString();
             Intent homeActivity = new Intent(LoginActivity.this, HomeActivity.class);
+            homeActivity.putExtra("email", email);
             startActivity(homeActivity);
         }
     }
