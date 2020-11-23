@@ -24,6 +24,8 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -38,41 +40,51 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
 
-public class HomeActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener, View.OnClickListener, ConnectionCallbacks, OnConnectionFailedListener,
-        LocationListener {
+public class HomeActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener, View.OnClickListener {
 
     private GoogleApiClient googleApiClient;
     private LocationRequest locationRequest;
     private ToggleButton coronaToggleButton;
     private ImageButton infoButton;
-    FirebaseFirestore db;
+    private Button mapButton;
 
-    public static final int updateInterval  = 1000 * 60 * 60;
+
+    public static final int updateInterval = 1000 * 15;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        googleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(LocationServices.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-
-        locationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setInterval(updateInterval)
-                .setFastestInterval(updateInterval);
-
         coronaToggleButton = (ToggleButton) findViewById(R.id.coronaToggleButton);
         infoButton = (ImageButton) findViewById(R.id.infoButton);
+        mapButton = (Button) findViewById(R.id.mapButton);
 
         coronaToggleButton.setOnCheckedChangeListener(this);
         infoButton.setOnClickListener(this);
 
-        db = FirebaseFirestore.getInstance();
-        googleApiClient.connect();
+        mapButton.setOnClickListener(this);
+
+        Intent service = new Intent(this, MyLocationService.class);
+        service.putExtra("email", getIntent().getStringExtra("email"));
+        getApplicationContext().startService(service);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(
+                R.menu.activity_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_logout:
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
 
@@ -83,62 +95,19 @@ public class HomeActivity extends AppCompatActivity implements CompoundButton.On
         }
     }
 
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        if (requestCode == 123)
-            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                onConnected(new Bundle());
-                Log.d("PERMISSION GRANTED", "");
-            }
-    }
-
     @Override
     public void onClick(View v) {
-        String link = "https://www.cdc.gov";
-        Uri uri = Uri.parse(link);
-        Intent websiteIntent = new Intent(Intent.ACTION_VIEW, uri);
-        startActivity(websiteIntent);
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        try {
-            LocationServices.FusedLocationApi
-                    .requestLocationUpdates(
-                            googleApiClient, locationRequest, this::onLocationChanged);
+        switch (v.getId()) {
+            case R.id.infoButton:
+                String link = "https://www.cdc.gov";
+                Uri uri = Uri.parse(link);
+                Intent websiteIntent = new Intent(Intent.ACTION_VIEW, uri);
+                startActivity(websiteIntent);
+                break;
+            case R.id.mapButton:
+                Intent locMap = new Intent(this, GoogleMapActivity.class);
+                startActivity(locMap);
+                break;
         }
-        catch (SecurityException s){
-            Log.d("Error","Not able to run location services...");
-        }
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        googleApiClient.disconnect();
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-    }
-
-    @Override
-    public void onLocationChanged(@NonNull Location location) {
-        HashMap<String,String> newlocation = new HashMap<>();
-        newlocation.put("user", getIntent().getStringExtra("email"));
-        newlocation.put("location", String.valueOf(location.getLatitude()) + " " + String.valueOf(location.getLongitude()));
-        db.collection("users")
-                .add(newlocation)
-                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                    @Override
-                    public void onSuccess(DocumentReference documentReference) {
-                        Log.d("User entered", "DocumentSnapshot added with ID: " + documentReference.getId());
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w("User entry failed", "Error adding document", e);
-                    }
-                });
     }
 }

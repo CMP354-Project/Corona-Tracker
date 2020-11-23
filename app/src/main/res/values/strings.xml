@@ -13,4 +13,8 @@
     <string name="enterDetails">Please enter your details: </string>
     <string name="coronaTogglePositive">I tested positive for Corona </string>
     <string name="coronaToggleNegative">I don\'t have Corona </string>
+    <string name="mapsString">View Visited Locations</string>
+    <string name="menuAbout">About</string>
+    <string name="menuLogout">Logout</string>
+    <string name="title_activity_google_map">Map</string>
 </resources>
