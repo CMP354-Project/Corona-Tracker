@@ -23,6 +23,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -35,6 +36,8 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static com.example.mycoronatracker.HomeActivity.visitedLocations;
+
 public class MyLocationService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
 
@@ -43,6 +46,7 @@ public class MyLocationService extends Service implements GoogleApiClient.Connec
     private LocationRequest locationRequest;
     private String email = "";
     public static final int updateInterval  = 1000 * 60;
+
 
     @Override
     public void onCreate() {
@@ -117,23 +121,33 @@ public class MyLocationService extends Service implements GoogleApiClient.Connec
         Date c = Calendar.getInstance().getTime();
         SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyy H:mm", Locale.getDefault());
         String formattedDate = df.format(c);
-        HashMap<String,String> newlocation = new HashMap<>();
-        newlocation.put("user", email);
-        newlocation.put("location", String.valueOf(location.getLatitude()) + " " + String.valueOf(location.getLongitude()));
-        newlocation.put("date", formattedDate);
-        db.collection("users")
-                .add(newlocation)
-                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                    @Override
-                    public void onSuccess(DocumentReference documentReference) {
-                        Log.d("User entered", "DocumentSnapshot added with ID: " + documentReference.getId());
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w("User entry failed", "Error adding document", e);
-                    }
-                });
+        HashMap<String, Object> newLocation = new HashMap<>();
+        newLocation.put("latitude",location.getLatitude());
+        newLocation.put("longitude",location.getLongitude());
+        visitedLocations.add(newLocation);
+        HashMap<String,Object> ussr = new HashMap<>();
+        ussr.put("user", email);
+        ussr.put("location", visitedLocations);
+        ussr.put("date", formattedDate);
+        try {
+            CollectionReference usersRef = db.collection("users");
+            db.collection("users")
+                    .add(ussr)
+                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                        @Override
+                        public void onSuccess(DocumentReference documentReference) {
+                            Log.d("User entered", "DocumentSnapshot added with ID: " + documentReference.getId());
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.w("User entry failed", "Error adding document", e);
+                        }
+                    });
+        }
+        catch (Exception e) {
+
+        }
     }
 }

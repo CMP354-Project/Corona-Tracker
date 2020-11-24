@@ -38,7 +38,9 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class HomeActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener, View.OnClickListener {
 
@@ -47,6 +49,8 @@ public class HomeActivity extends AppCompatActivity implements CompoundButton.On
     private ToggleButton coronaToggleButton;
     private ImageButton infoButton;
     private Button mapButton;
+
+    public static List<HashMap<String, Object>> visitedLocations = new ArrayList<>();
 
 
     public static final int updateInterval = 1000 * 15;
