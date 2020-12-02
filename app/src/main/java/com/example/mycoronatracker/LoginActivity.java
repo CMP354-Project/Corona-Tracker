@@ -57,36 +57,6 @@ public class LoginActivity extends AppCompatActivity implements OnClickListener 
         }
     }
 
-//    private void validateLoginDetails() {
-//        String error = "";
-//        if (registerEmailET == null || registerPassET == null || registerConfirmPassET == null) {
-//            error = "Please fill all fields.";
-//            registerEmailTV.setText(error);
-//            registerPassTV.setText(error);
-//            registerConfirmPassTV.setText(error);
-//            return false;
-//        }
-//        else if (!isValidEmail(registerEmailET.getText().toString())) {
-//            error = "Please enter a valid email.";
-//            registerEmailTV.setText(error);
-//            return false;
-//        }
-//        // TODO: Implement preexisting email checking
-//        else if (registerPassET.getText().toString().length() < 8) {
-//            error = "The password must be longer than 8 characters.";
-//            registerPassTV.setText(error);
-//            return false;
-//        }
-//        else if (!registerPassET.getText().toString().equals(registerConfirmPassET.getText().toString())) {
-//            error = "Both passwords must match.";
-//            registerPassTV.setText(error);
-//            registerConfirmPassTV.setText(error);
-//            return false;
-//        }
-//        return true;
-//
-//    }
-
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
