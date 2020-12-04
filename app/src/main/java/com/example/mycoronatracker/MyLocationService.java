@@ -51,10 +51,7 @@ public class MyLocationService extends Service implements GoogleApiClient.Connec
     private FirebaseFirestore db;
     private GoogleApiClient googleApiClient;
     private LocationRequest locationRequest;
-    public static final int updateInterval = 1000 * 30;private String name = "";
-    private int NOTIFICATION_ID = 1;
-    private Timer timer;
-    private boolean isInfected = false;
+    public static final int updateInterval = 1000 * 120;
 
 
     @Override

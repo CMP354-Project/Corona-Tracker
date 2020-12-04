@@ -19,8 +19,11 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -40,11 +43,9 @@ public class HomeActivity extends AppCompatActivity implements CompoundButton.On
     private ImageButton infoButton;
     private Button mapButton;
     private FirebaseFirestore db;
-
+    private List<HashMap<String, Object>> userLocations;
     public static List<HashMap<String, Object>> visitedLocations = new ArrayList<>();
 
-
-    public static final int updateInterval = 1000 * 15;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -143,20 +144,36 @@ public class HomeActivity extends AppCompatActivity implements CompoundButton.On
 
     private class checkUser extends AsyncTask<String, Void, Boolean> {
         String userToTest;
-        List<HashMap<String, Object>> userLocations;
         boolean hasCorona = false;
         boolean userFound = false;
 
         @Override
         protected Boolean doInBackground(String... strings) {
+            userLocations = null;
             Log.e("here", "entered background function/task");
             userToTest = strings[0];
-            getLocations();
-            Log.e("strings", strings[0]);
+            try {
+                getLocations();
+            }
+            catch (Exception e) {
+                Log.e("error retrieving", e.getMessage());
+            }
+//            try {
+//                DocumentReference doc = db.collection("users").document(userToTest);
+//                Task<DocumentSnapshot> task = doc.get();
+//                DocumentSnapshot documentSnapshot = task.getResult();
+//                Tasks.await(task);
+//                userLocations = (List<HashMap<String, Object>>) documentSnapshot.get("location");
+//            } catch (Exception e) {
+//
+//                Log.e("error here", e.getMessage());
+//            }
             while (userLocations == null) {}
             Iterator i = visitedLocations.iterator();
             Iterator j = userLocations.iterator();
             HashMap<String, Object> currentLocation;
+            currentLocation = (HashMap<String, Object>) i.next();
+            Log.e("latitude", currentLocation.get("latitude").toString());
             HashMap<String, Object> locationToCompare;
             int count = 0;
             while (i.hasNext() && !hasCorona) {
@@ -172,39 +189,23 @@ public class HomeActivity extends AppCompatActivity implements CompoundButton.On
                     Log.e("difference", String.valueOf(difference));
                     count++;
                     if (difference <= 0.002f) {
-                        Log.e("here", "Found overlap");
-                        hasCorona = true;
+                        db.collection("users").document(userToTest).update("notify", true);
                     }
                 }
             }
             Log.e("count", String.valueOf(count));
-
-            return hasCorona;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean hasCorona) {
-            if (hasCorona)
-                db.collection("users").document(userToTest).update("notify", true);
+            return null;
         }
 
         private void getLocations() {
-            try {
-                db.collection("users").document(userToTest).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot document = task.getResult();
-                            if (document.exists()) {
-                                userLocations = (List<HashMap<String, Object>>) document.get("location");
-                            }
-                        }
-                    }
-                });
-            }
-            catch (Exception e) {
-                Log.e("error here", e.getMessage());
-            }
+            db.collection("users").document(userToTest).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                @Override
+                public void onSuccess(DocumentSnapshot documentSnapshot) {
+                    Log.e("accountToTest:", userToTest.toString());
+                    userLocations = (List<HashMap<String, Object>>) documentSnapshot.get("location");
+                    Log.e("gettingLocations", "Execution is now in getLocations()");
+                }
+            });
         }
     }
 

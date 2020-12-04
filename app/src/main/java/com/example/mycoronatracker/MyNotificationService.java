@@ -16,6 +16,7 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
@@ -53,30 +54,18 @@ public class MyNotificationService extends Service {
                     stopTimer();
                     return;
                 }
-                db.collection("users").document(mAuth.getCurrentUser().getEmail()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                db.collection("users").document(mAuth.getCurrentUser().getEmail()).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                     @RequiresApi(api = Build.VERSION_CODES.O)
                     @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot document = task.getResult();
-                            if (document.exists()) {
-                                isInfected = (boolean) document.get("notify");
-                                if(isInfected) {
-                                    sendNotification();
-                                    isInfected = false; //resets flag after notification has been sent
-                                    db.collection("users").document(mAuth.getCurrentUser().getEmail()).update("notify", isInfected);
-                                }
-                            } else {
-                                Log.d("ERROR", "No such document");
-                            }
-                        } else {
-                            Log.d("ERROR", "get failed with ", task.getException());
-                        }
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        isInfected = (boolean) documentSnapshot.get("notify");
+                        if(isInfected)
+                            sendNotification();
+                        isInfected = false; //resets flag after notification has been sent
+                        db.collection("users").document(mAuth.getCurrentUser().getEmail()).update("notify", isInfected);
                     }
                 });
             }
-
-            //}
         };
 
         timer = new Timer(true);
