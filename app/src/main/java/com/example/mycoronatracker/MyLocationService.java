@@ -10,12 +10,14 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -46,10 +48,14 @@ import static com.example.mycoronatracker.LoginActivity.mAuth;
 public class MyLocationService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
 
-    FirebaseFirestore db;
+    private FirebaseFirestore db;
     private GoogleApiClient googleApiClient;
     private LocationRequest locationRequest;
-    public static final int updateInterval = 1000 * 30;
+    public static final int updateInterval = 1000 * 30;private String name = "";
+    private int NOTIFICATION_ID = 1;
+    private Timer timer;
+    private boolean isInfected = false;
+
 
     @Override
     public void onCreate() {
@@ -66,6 +72,22 @@ public class MyLocationService extends Service implements GoogleApiClient.Connec
                 .setFastestInterval(updateInterval);
         db = FirebaseFirestore.getInstance();
         googleApiClient.connect();
+        try {
+            db.collection("users").document(mAuth.getCurrentUser().getEmail()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            visitedLocations = (List<HashMap<String, Object>>) document.get("location");
+                        }
+                    }
+                }
+            });
+
+        } catch (Exception e) {
+            Log.d("EXCEPTION", e.getMessage());
+        }
     }
 
     @Override
@@ -153,7 +175,6 @@ public class MyLocationService extends Service implements GoogleApiClient.Connec
             Log.d("EXCEPTION", e.getMessage());
         }
     }
-
 
 
 }

@@ -20,6 +20,7 @@ import android.widget.ToggleButton;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -27,6 +28,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.example.mycoronatracker.LoginActivity.mAuth;
@@ -60,9 +62,11 @@ public class HomeActivity extends AppCompatActivity implements CompoundButton.On
 
         db = FirebaseFirestore.getInstance();
 
-        Intent service = new Intent(this, MyLocationService.class);
-        service.putExtra("email", getIntent().getStringExtra("email"));
-        getApplicationContext().startService(service);
+        Intent locationService = new Intent(this, MyLocationService.class);
+        getApplicationContext().startService(locationService);
+
+        Intent notificationService = new Intent(this, MyNotificationService.class);
+        getApplicationContext().startService(notificationService);
     }
 
     @Override
@@ -76,6 +80,8 @@ public class HomeActivity extends AppCompatActivity implements CompoundButton.On
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_logout:
+                FirebaseAuth.getInstance().signOut();
+                finish();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -134,48 +140,66 @@ public class HomeActivity extends AppCompatActivity implements CompoundButton.On
         }
     }
 
+
     private class checkUser extends AsyncTask<String, Void, Boolean> {
         String userToTest;
-        List<HashMap<String, Object>> userLocations = new ArrayList<>();
+        List<HashMap<String, Object>> userLocations;
+        boolean hasCorona = false;
 
         @Override
         protected Boolean doInBackground(String... strings) {
             userToTest = strings[0];
-            getUserLocations(userToTest);
+            db.collection("users").document(userToTest).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            userLocations = (List<HashMap<String, Object>>) document.get("location");
+                        }
+                    }
+                }
+            });
+            while (userLocations == null) {}
+            Iterator i = visitedLocations.iterator();
+            Iterator j = userLocations.iterator();
+            HashMap<String, Object> currentLocation;
+            HashMap<String, Object> locationToCompare;
+            Log.e("here", "entered background function/task");
+            int count = 0;
+            while (i.hasNext() && !hasCorona) {
+                Log.e("here", "entered while loop");
+                currentLocation = (HashMap<String, Object>) i.next();
+                while (j.hasNext() && !hasCorona) {
+                    locationToCompare = (HashMap<String, Object>) j.next();
+                    float lat1 = Float.parseFloat(String.valueOf(currentLocation.get("latitude")));
+                    float lng1 = Float.parseFloat(String.valueOf(currentLocation.get("longitude")));
+                    float lat2 = Float.parseFloat(String.valueOf(locationToCompare.get("latitude")));
+                    float lng2 = Float.parseFloat(String.valueOf(locationToCompare.get("longitude")));
+                    float difference = distance(lat1, lng1, lat2, lng2);
+                    Log.e("difference", String.valueOf(difference));
+                    count++;
+                    if (difference <= 0.002f) {
+                        Log.e("here", "Found overlap");
+                        hasCorona = true;
+                    }
+                }
+            }
+            Log.e("count", String.valueOf(count));
 
-            return null;
+            return hasCorona;
         }
 
         @Override
-        protected void onPostExecute(Boolean aBoolean) {
-            super.onPostExecute(aBoolean);
-        }
-
-        private void getUserLocations(String userToTest) {
-
-            try {
-                db.collection("users").document(userToTest).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot document = task.getResult();
-                            Log.d("document exists", document.getId());
-                            if (document.exists()) {
-                                userLocations = (List<HashMap<String, Object>>) document.get("location");
-                                Log.d("locations exists", String.valueOf(userLocations.size()));
-                            }
-                        }
-                    }
-                });
-            } catch (Exception e) {
-                Log.d("ERROR", e.getMessage());
-            }
+        protected void onPostExecute(Boolean hasCorona) {
+            if (hasCorona)
+                db.collection("users").document(userToTest).update("notify", true);
         }
     }
 
 
     private void checkLocations() {
+        Log.e("here", "entered function");
         try {
             db.collection("users")
                     .get()
@@ -183,10 +207,15 @@ public class HomeActivity extends AppCompatActivity implements CompoundButton.On
                         @Override
                         public void onComplete(@NonNull Task<QuerySnapshot> task) {
                             if (task.isSuccessful()) {
+                                Log.e("here", "entered task");
                                 for (QueryDocumentSnapshot document : task.getResult()) {
                                     String userToTest = document.get("user").toString();
-                                    if (!mAuth.getCurrentUser().getEmail().equals(userToTest))
+                                    Log.e("myAccount", mAuth.getCurrentUser().getEmail().toString());
+                                    Log.e("userAccount", userToTest);
+                                    if (!mAuth.getCurrentUser().getEmail().equals(userToTest)) {
+                                        Log.e("here", "entered for loop");
                                         new checkUser().execute(userToTest);
+                                    }
                                 }
                             } else {
                                 Log.d("ERROR", "Error getting users: ", task.getException());
@@ -199,28 +228,23 @@ public class HomeActivity extends AppCompatActivity implements CompoundButton.On
     }
 
     // https://stackoverflow.com/questions/18170131/comparing-two-locations-using-their-longitude-and-latitude
-    private double distance(double lat1, double lng1, double lat2, double lng2) {
+    private float distance(float lat1, float lng1, float lat2, float lng2) {
 
-        double earthRadius = 6371;
+        float earthRadius = 6371;
 
-        double dLat = Math.toRadians(lat2 - lat1);
-        double dLng = Math.toRadians(lng2 - lng1);
+        float dLat = (float) Math.toRadians(lat2 - lat1);
+        float dLng = (float) Math.toRadians(lng2 - lng1);
 
-        double sindLat = Math.sin(dLat / 2);
-        double sindLng = Math.sin(dLng / 2);
+        float sindLat = (float) Math.sin(dLat / 2);
+        float sindLng = (float) Math.sin(dLng / 2);
 
-        double a = Math.pow(sindLat, 2) + Math.pow(sindLng, 2)
-                * Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2));
+        float a = (float) (Math.pow(sindLat, 2) + Math.pow(sindLng, 2)
+                * Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)));
 
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        float c = (float) (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 
-        double dist = earthRadius * c;
+        float dist = earthRadius * c;
 
         return dist; // output distance, in KILOMETERS
-    }
-
-
-    private void sendNotification() {
-
     }
 }

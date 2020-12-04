@@ -43,9 +43,11 @@ public class RegisterActivity extends AppCompatActivity implements OnClickListen
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
 
+    private EditText registerNameET;
     private EditText registerEmailET;
     private EditText registerPassET;
     private EditText registerConfirmPassET;
+    private TextView registerNameTV;
     private TextView registerEmailTV;
     private TextView registerPassTV;
     private TextView registerConfirmPassTV;
@@ -57,9 +59,11 @@ public class RegisterActivity extends AppCompatActivity implements OnClickListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
+        registerNameET = (EditText) findViewById(R.id.registerNameET);
         registerEmailET = (EditText) findViewById(R.id.registerEmailET);
         registerPassET = (EditText) findViewById(R.id.registerPassET);
         registerConfirmPassET = (EditText) findViewById(R.id.confirmPassEditText);
+        registerNameTV = (TextView) findViewById(R.id.registerNameErrorTV);
         registerEmailTV = (TextView) findViewById(R.id.registerEmailErrorTV);
         registerPassTV = (TextView) findViewById(R.id.registerPassErrorTV);
         registerConfirmPassTV = (TextView) findViewById(R.id.confirmPassErrorTV);
@@ -79,22 +83,24 @@ public class RegisterActivity extends AppCompatActivity implements OnClickListen
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.registerButton:
-                registerButton.setVisibility(View.INVISIBLE);
                 if (!validateRegisterDetails()) {
                     break;
                 }
-
+                clearErrors();
+                registerButton.setVisibility(View.GONE);
+                String name = registerNameET.getText().toString();
                 String email = registerEmailET.getText().toString();
                 String password = registerPassET.getText().toString();
                 Date c = Calendar.getInstance().getTime();
                 SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyy H:mm", Locale.getDefault());
                 String formattedDate = df.format(c);
                 HashMap<String, Object> user = new HashMap<>();
+                user.put("name", name);
                 user.put("user", email);
                 user.put("location", tempLocation);
                 user.put("date", formattedDate);
                 user.put("infected", false);
-
+                user.put("notify", false);
                 try {
                     db.collection("users")
                             .document(email)//use email for document name
@@ -118,6 +124,13 @@ public class RegisterActivity extends AppCompatActivity implements OnClickListen
                 }
                 break;
         }
+    }
+
+    private void clearErrors() {
+        registerNameTV.setText("");
+        registerEmailTV.setText("");
+        registerPassTV.setText("");
+        registerConfirmPassTV.setText("");
     }
 
     private void authenticate(String email, String password) {
@@ -153,8 +166,9 @@ public class RegisterActivity extends AppCompatActivity implements OnClickListen
 
     private boolean validateRegisterDetails() {
         String error = "";
-        if (registerEmailET == null || registerPassET == null || registerConfirmPassET == null) {
+        if (registerEmailET == null || registerPassET == null || registerConfirmPassET == null || registerNameET == null) {
             error = "Please fill all fields.";
+            registerNameTV.setText(error);
             registerEmailTV.setText(error);
             registerPassTV.setText(error);
             registerConfirmPassTV.setText(error);
