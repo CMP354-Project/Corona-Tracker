@@ -151,6 +151,7 @@ public class HomeActivity extends AppCompatActivity implements CompoundButton.On
         protected Boolean doInBackground(String... strings) {
             Log.e("here", "entered background function/task");
             userToTest = strings[0];
+            getLocations();
             Log.e("strings", strings[0]);
             while (userLocations == null) {}
             Iterator i = visitedLocations.iterator();
@@ -187,7 +188,7 @@ public class HomeActivity extends AppCompatActivity implements CompoundButton.On
                 db.collection("users").document(userToTest).update("notify", true);
         }
 
-        private boolean getUser() {
+        private void getLocations() {
             try {
                 db.collection("users").document(userToTest).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
@@ -196,7 +197,6 @@ public class HomeActivity extends AppCompatActivity implements CompoundButton.On
                             DocumentSnapshot document = task.getResult();
                             if (document.exists()) {
                                 userLocations = (List<HashMap<String, Object>>) document.get("location");
-                                userFound = true;
                             }
                         }
                     }
@@ -205,7 +205,6 @@ public class HomeActivity extends AppCompatActivity implements CompoundButton.On
             catch (Exception e) {
                 Log.e("error here", e.getMessage());
             }
-            return userFound;
         }
     }
 
