@@ -4,7 +4,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -15,6 +17,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -29,6 +32,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -38,28 +43,32 @@ import static com.example.mycoronatracker.LoginActivity.mAuth;
 
 public class HomeActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener, View.OnClickListener {
 
-
+    private String infectionStatus = "";
+    private boolean infected;
     private ToggleButton coronaToggleButton;
+    private TextView nameDisplayTV;
+    private TextView infectionStatusTV;
     private ImageButton infoButton;
-    private Button mapButton;
     private FirebaseFirestore db;
     private List<HashMap<String, Object>> userLocations;
     public static List<HashMap<String, Object>> visitedLocations = new ArrayList<>();
 
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home);
+        setContentView(R.layout.activity_home_dev);
 
-        coronaToggleButton = (ToggleButton) findViewById(R.id.coronaToggleButton);
-        infoButton = (ImageButton) findViewById(R.id.infoButton);
-        mapButton = (Button) findViewById(R.id.mapButton);
+        coronaToggleButton = (ToggleButton) findViewById(R.id.coronaToggleButton_final);
+        infoButton = (ImageButton) findViewById(R.id.infoButton_final);
 
+        nameDisplayTV=(TextView)findViewById(R.id.nameDisplayTV);
+        infectionStatusTV=(TextView)findViewById(R.id.infectionStatusTV);
         coronaToggleButton.setOnCheckedChangeListener(this);
         infoButton.setOnClickListener(this);
 
-        mapButton.setOnClickListener(this);
+
 
         db = FirebaseFirestore.getInstance();
 
@@ -68,6 +77,25 @@ public class HomeActivity extends AppCompatActivity implements CompoundButton.On
 
         Intent notificationService = new Intent(this, MyNotificationService.class);
         getApplicationContext().startService(notificationService);
+
+
+
+        db.collection("users").document(mAuth.getCurrentUser().getEmail()).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                infected = (boolean) documentSnapshot.get("infected");
+            }
+        });
+
+        if (infected) {
+            infectionStatus = "Infected";
+        }
+        else {
+            infectionStatus = "Not Infected";
+        }
+        nameDisplayTV.setText(mAuth.getCurrentUser().getEmail());
+        infectionStatusTV.setText(infectionStatus);
+
     }
 
     @Override
@@ -90,14 +118,21 @@ public class HomeActivity extends AppCompatActivity implements CompoundButton.On
     }
 
 
+    @SuppressLint("ResourceAsColor")
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         if (isChecked) {
             Toast.makeText(this, "You have corona lol", Toast.LENGTH_SHORT).show();
             changeInfectionStatus(true);
+            infectionStatus = "Infected";
+            infectionStatusTV.setText(infectionStatus);
             checkLocations();
+            coronaToggleButton.setBackgroundColor(Color.parseColor("#FF0000"));
         } else {
             changeInfectionStatus(false);
+            infectionStatus = "Not Infected";
+            infectionStatusTV.setText(infectionStatus);
+            coronaToggleButton.setBackgroundColor(Color.parseColor("#2196F3"));
         }
     }
 
@@ -128,15 +163,11 @@ public class HomeActivity extends AppCompatActivity implements CompoundButton.On
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.infoButton:
+            case R.id.infoButton_final:
                 String link = "https://www.cdc.gov";
                 Uri uri = Uri.parse(link);
                 Intent websiteIntent = new Intent(Intent.ACTION_VIEW, uri);
                 startActivity(websiteIntent);
-                break;
-            case R.id.mapButton:
-                Intent locMap = new Intent(this, GoogleMapActivity.class);
-                startActivity(locMap);
                 break;
         }
     }
@@ -158,16 +189,6 @@ public class HomeActivity extends AppCompatActivity implements CompoundButton.On
             catch (Exception e) {
                 Log.e("error retrieving", e.getMessage());
             }
-//            try {
-//                DocumentReference doc = db.collection("users").document(userToTest);
-//                Task<DocumentSnapshot> task = doc.get();
-//                DocumentSnapshot documentSnapshot = task.getResult();
-//                Tasks.await(task);
-//                userLocations = (List<HashMap<String, Object>>) documentSnapshot.get("location");
-//            } catch (Exception e) {
-//
-//                Log.e("error here", e.getMessage());
-//            }
             while (userLocations == null) {}
             Iterator i = visitedLocations.iterator();
             Iterator j = userLocations.iterator();

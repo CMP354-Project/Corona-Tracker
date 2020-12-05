@@ -32,13 +32,13 @@ public class LoginActivity extends AppCompatActivity implements OnClickListener 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.activity_login_dev);
 
-        loginEmailET = (EditText) findViewById(R.id.loginEmailET);
-        loginPassET = (EditText) findViewById(R.id.loginPassET);
-        loginEmailTV = (TextView) findViewById(R.id.loginEmailErrorTV);
-        loginPassTV = (TextView) findViewById(R.id.loginPassErrorTV);
-        loginButton = (Button) findViewById(R.id.loginButton);
+        loginEmailET = (EditText) findViewById(R.id.loginEmailET_final);
+        loginPassET = (EditText) findViewById(R.id.loginPassET_final);
+        loginEmailTV = (TextView) findViewById(R.id.loginEmailErrorTV_final);
+        loginPassTV = (TextView) findViewById(R.id.loginPassErrorTV_final);
+        loginButton = (Button) findViewById(R.id.loginButton_final);
 
         loginButton.setOnClickListener(this);
 
@@ -60,7 +60,7 @@ public class LoginActivity extends AppCompatActivity implements OnClickListener 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.loginButton:
+            case R.id.loginButton_final:
 
                 String email = loginEmailET.getText().toString();
                 String password = loginPassET.getText().toString();
