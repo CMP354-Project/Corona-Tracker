@@ -9,7 +9,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.view.View.OnClickListener;
 import android.widget.Toast;
 
@@ -25,8 +24,6 @@ public class LoginActivity extends AppCompatActivity implements OnClickListener 
 
     private EditText loginEmailET;
     private EditText loginPassET;
-    private TextView loginEmailTV;
-    private TextView loginPassTV;
     private Button loginButton;
 
     @Override
@@ -36,8 +33,6 @@ public class LoginActivity extends AppCompatActivity implements OnClickListener 
 
         loginEmailET = (EditText) findViewById(R.id.loginEmailET_final);
         loginPassET = (EditText) findViewById(R.id.loginPassET_final);
-        loginEmailTV = (TextView) findViewById(R.id.loginEmailErrorTV_final);
-        loginPassTV = (TextView) findViewById(R.id.loginPassErrorTV_final);
         loginButton = (Button) findViewById(R.id.loginButton_final);
 
         loginButton.setOnClickListener(this);
@@ -50,7 +45,6 @@ public class LoginActivity extends AppCompatActivity implements OnClickListener 
     @Override
     public void onStart() {
         super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
             return;
@@ -60,7 +54,7 @@ public class LoginActivity extends AppCompatActivity implements OnClickListener 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.loginButton_final:
+            case R.id.loginButton_final: // Attempt to log user in
 
                 String email = loginEmailET.getText().toString();
                 String password = loginPassET.getText().toString();
@@ -80,16 +74,14 @@ public class LoginActivity extends AppCompatActivity implements OnClickListener 
                                     Toast.makeText(LoginActivity.this, "Authentication failed.",
                                             Toast.LENGTH_SHORT).show();
                                     updateUI(null);
-                                    // ...
                                 }
-                                // ...
                             }
                         });
                 break;
         }
     }
 
-    private void updateUI(FirebaseUser user) {
+    private void updateUI(FirebaseUser user) { // Send user to home activity if successful
         if (user != null) {
             String email = loginEmailET.getText().toString();
             Intent homeActivity = new Intent(LoginActivity.this, HomeActivity.class);

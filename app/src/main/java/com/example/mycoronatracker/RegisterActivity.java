@@ -4,9 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
-import android.nfc.Tag;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
@@ -23,11 +21,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-
-import org.w3c.dom.Text;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -82,7 +76,7 @@ public class RegisterActivity extends AppCompatActivity implements OnClickListen
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.registerButton:
+            case R.id.registerButton: // Registering user
                 if (!validateRegisterDetails()) {
                     break;
                 }
@@ -97,14 +91,14 @@ public class RegisterActivity extends AppCompatActivity implements OnClickListen
                 HashMap<String, Object> user = new HashMap<>();
                 user.put("name", name);
                 user.put("user", email);
-                user.put("location", tempLocation);
-                user.put("date", formattedDate);
+                user.put("location", tempLocation); // add temp location for later updates
+                user.put("date", formattedDate); // add date of registration
                 user.put("infected", false);
                 user.put("notify", false);
                 try {
                     db.collection("users")
-                            .document(email)//use email for document name
-                            .set(user) //add the details into the document
+                            .document(email)
+                            .set(user)
                             .addOnSuccessListener(new OnSuccessListener() {
                                 @Override
                                 public void onSuccess(Object o) {
@@ -126,7 +120,7 @@ public class RegisterActivity extends AppCompatActivity implements OnClickListen
         }
     }
 
-    private void clearErrors() {
+    private void clearErrors() { // clears all errors
         registerNameTV.setText("");
         registerEmailTV.setText("");
         registerPassTV.setText("");
@@ -155,16 +149,15 @@ public class RegisterActivity extends AppCompatActivity implements OnClickListen
 
                     private void updateUI(FirebaseUser user) {
                         if (user != null) {
-                            String userEmail = user.getEmail().toString();
                             Intent homeScreen = new Intent(RegisterActivity.this, MainActivity.class);
-                            homeScreen.putExtra("email", userEmail);
-                            startActivity(homeScreen);
+                            startActivity(homeScreen); // starts home activity
                         }
                     }
                 });
     }
 
-    private boolean validateRegisterDetails() {
+    private boolean validateRegisterDetails() { // function to validate registration fields
+        clearErrors();
         String error = "";
         if (registerEmailET == null || registerPassET == null || registerConfirmPassET == null || registerNameET == null) {
             error = "Please fill all fields.";

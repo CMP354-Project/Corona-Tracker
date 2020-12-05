@@ -79,14 +79,16 @@
 
     <EditText
         android:id="@+id/loginPassET_final"
-        android:layout_width="349dp"
+        android:layout_width="352sp"
         android:layout_height="56dp"
         android:layout_marginTop="68dp"
         android:background="@drawable/round_border"
         android:drawableStart="@drawable/ic_baseline_lock_24"
+        android:drawablePadding="15sp"
         android:ems="10"
         android:hint="@string/Password"
         android:inputType="textPassword"
+        android:padding="15sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.471"
         app:layout_constraintStart_toStartOf="parent"

@@ -3,10 +3,8 @@ package com.example.mycoronatracker;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
@@ -19,12 +17,9 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -44,7 +39,7 @@ public class MyNotificationService extends Service {
         db = FirebaseFirestore.getInstance();
     }
 
-    private void startTimer() {
+    private void startTimer() { // starts timer task
         TimerTask task = new TimerTask() {
 
             @Override
@@ -60,7 +55,7 @@ public class MyNotificationService extends Service {
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
                         isInfected = (boolean) documentSnapshot.get("notify");
                         if(isInfected)
-                            sendNotification();
+                            sendNotification(); // sends notification to user if he needs to be notified
                         isInfected = false; //resets flag after notification has been sent
                         db.collection("users").document(mAuth.getCurrentUser().getEmail()).update("notify", isInfected);
                     }
@@ -69,8 +64,8 @@ public class MyNotificationService extends Service {
         };
 
         timer = new Timer(true);
-        int delay = 1000;
-        int interval = 1000 * 20;
+        int delay = 1000; // checks immediately when app is launched
+        int interval = 1000 * 20; // 20 seconds for testing and demo purposes, one hour if is in production
         timer.schedule(task, delay, interval);
     }
 
@@ -79,20 +74,8 @@ public class MyNotificationService extends Service {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void sendNotification() {
-        db.collection("users").document(mAuth.getCurrentUser().getEmail()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    Log.d("document exists", document.getId());
-                    if (document.exists()) {
-                        name = document.get("name").toString();
-                    }
-                }
-            }
-        });
-        int icon = R.drawable.ic_launcher_foreground;
+    private void sendNotification() { // sends notification to user
+        int icon = R.drawable.ic_baseline_bubble_chart_24;
         CharSequence tickerText = "Possible chance of COVID-19 infection!";
         CharSequence contentTitle = "RED ALERT!";
         CharSequence contentText = "Please update your infection status in the application and get tested as soon as possible";
